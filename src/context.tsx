@@ -1,9 +1,14 @@
-import React, { createContext, useContext, useReducer } from 'react'
+import React, {
+  createContext,
+  ReactElement,
+  useContext,
+  useReducer
+} from 'react'
 import { createReducer } from './reducer'
 import type { Context, FC } from 'react'
 import type { IReducer, ConsumerProps } from './typings'
 
-const GLOBAL = 'GLOBAL'
+const GLOBAL: string = 'GLOBAL'
 
 const contexts: Map<string, Context<any>> = new Map<string, Context<any>>()
 const context: Context<any> = createContext(null)
@@ -40,14 +45,14 @@ function createSetters(
   }, {})
 }
 
-export function useGlobalContext(name: string = GLOBAL) {
+export function useGlobalContext(name: string = GLOBAL): [any, Object] {
   if (!contexts.has(name)) {
     throw new Error('Context not exists.')
   }
-  const [context, dispatch] = useContext(getOrCreate(name))
-  const reset = () => dispatch({ type: 'reset' })
+  const [context, dispatch]: [any, Function] = useContext(getOrCreate(name))
+  const reset: VoidFunction = () => dispatch({ type: 'reset' })
   if (context instanceof Object) {
-    const setters = createSetters(context, dispatch)
+    const setters: Object = createSetters(context, dispatch)
     return [
       context,
       {
@@ -65,10 +70,13 @@ export function useGlobalContext(name: string = GLOBAL) {
   ]
 }
 
-export function useParcelContext(key: string, name: string = GLOBAL) {
-  const [context, setters] = useGlobalContext(name)
+export function useParcelContext(
+  key: string,
+  name: string = GLOBAL
+): [any, Function] {
+  const [context, setters]: [any, Object] = useGlobalContext(name)
   if (context instanceof Object) {
-    const setter = 'set' + capitalize(key)
+    const setter: string = 'set' + capitalize(key)
     return [context[key], setters[setter]]
   }
   throw new Error(
@@ -82,10 +90,10 @@ export function connect(
   Component: FC,
   initialState: any,
   name: string = GLOBAL
-) {
+): FC<any> {
   const context: Context<any> = getOrCreate(name)
   const reducer: IReducer = createReducer(initialState)
-  return function (props: any) {
+  return function (props: any): ReactElement {
     return (
       <context.Provider value={useReducer(reducer, initialState)}>
         <Component {...props} />
@@ -94,7 +102,7 @@ export function connect(
   }
 }
 
-export function GlobalConsumer(props: ConsumerProps) {
+export function GlobalConsumer(props: ConsumerProps): ReactElement {
   if (contexts.has(props.context)) {
     throw new Error('This context not exists.')
   }
